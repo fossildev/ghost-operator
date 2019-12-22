@@ -1,0 +1,122 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: ghostapps.ghost.fossil.or.id
+spec:
+  group: ghost.fossil.or.id
+  names:
+    kind: GhostApp
+    listKind: GhostAppList
+    plural: ghostapps
+    singular: ghostapp
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: GhostApp is the Schema for the ghostapps API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: GhostAppSpec defines the desired state of GhostApp
+          properties:
+            config:
+              description: Ghost configuration. This field will be written as ghost
+                configuration. Saved in configmap and mounted in /etc/ghost/config/config.json
+                and symlinked to /var/lib/ghost/config.production.json
+              properties:
+                database:
+                  description: GhostDatabaseSpec defines ghost database config. https://ghost.org/docs/concepts/config/#database
+                  properties:
+                    client:
+                      description: 'Client is ghost database client, for now we only
+                        support sqlite3. Of course, we will support mysql too soon.
+                        TODO (prksu): Add mysql database client'
+                      enum:
+                      - sqlite3
+                      type: string
+                    connection:
+                      description: GhostDatabaseConnectionSpec defines ghost database
+                        connection.
+                      properties:
+                        database:
+                          description: mysql database name
+                          type: string
+                        filename:
+                          description: sqlite filename.
+                          type: string
+                        host:
+                          description: mysql host
+                          type: string
+                        password:
+                          description: mysql database password of user
+                          type: string
+                        port:
+                          anyOf:
+                          - type: string
+                          - type: integer
+                          description: mysql port
+                        user:
+                          description: mysql database user
+                          type: string
+                      type: object
+                  required:
+                  - client
+                  type: object
+                url:
+                  type: string
+              required:
+              - database
+              - url
+              type: object
+            image:
+              description: 'Ghost container image, by default using latest ghost image
+                from docker hub registry. NOTE: This operator only support ghost image
+                from docker official image. https://hub.docker.com/_/ghost/'
+              type: string
+            persistent:
+              description: GhostPersistentSpec defines peristent volume
+              properties:
+                enabled:
+                  type: boolean
+                size:
+                  description: size of storage
+                  type: string
+                storageClass:
+                  description: If defined, will create persistentVolumeClaim with
+                    spesific storageClass name. If undefined (the default) or set
+                    to null, no storageClassName spec is set, choosing the default
+                    provisioner.
+                  nullable: true
+                  type: string
+              required:
+              - enabled
+              - size
+              type: object
+            replicas:
+              description: Ghost deployment repicas
+              format: int32
+              type: integer
+          required:
+          - config
+          type: object
+        status:
+          description: GhostAppStatus defines the observed state of GhostApp
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
