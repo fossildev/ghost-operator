@@ -1,0 +1,73 @@
+name: "Github Workflows"
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+jobs:
+  operator-build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go 1.13
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+      id: go
+    - name: Check out code
+      uses: actions/checkout@v1
+    - name: Install operator-sdk
+      run: hack/install-operator-sdk.sh
+    - name: Build operator
+      run: make build
+      env:
+        IMAGE_TAG: ghost-operator:$(GITHUB_SHA)
+  operator-unit-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go 1.13
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+      id: go
+    - name: Check out code
+      uses: actions/checkout@v1
+    - name: Install operator-sdk
+      run: hack/install-operator-sdk.sh
+    - name: Run Go Unit Test
+      run: make test
+  operator-e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go 1.13
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+      id: go
+    - name: Check out code
+      uses: actions/checkout@v1
+    - name: Install operator-sdk
+      run: hack/install-operator-sdk.sh
+    - name: Build operator
+      run: make build
+      env:
+        IMAGE_TAG: ghost-operator:$(GITHUB_SHA)
+    - name: Create Kuberetes Kind Cluster
+      uses: helm/kind-action@v1.0.0-alpha.3
+      with:
+        cluster_name: kubernetes
+        install_local_path_provisioner: true
+    - name: Export Kubernetes Config From Kind Cluster
+      run: kind export kubeconfig --name=kubernetes
+    - name: Load ghost-operator image to Kind Cluster
+      run: kind load docker-image --name=kubernetes ghost-operator:$GITHUB_SHA
+    - name: Create Kubernetes Namespace
+      run: kubectl create namespace $NAMESPACE
+      env:
+        NAMESPACE: ghost-e2e-test
+    - name: Run e2e Test
+      run: make test-e2e
+      env:
+        NAMESPACE: ghost-e2e-test
+        IMAGE_TAG: ghost-operator:$(GITHUB_SHA)

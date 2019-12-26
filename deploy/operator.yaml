@@ -18,7 +18,7 @@ spec:
           image: fossildev/ghost-operator
           command:
           - ghost-operator
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - name: WATCH_NAMESPACE
               valueFrom:
