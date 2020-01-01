@@ -3,6 +3,16 @@ kind: CustomResourceDefinition
 metadata:
   name: ghostapps.ghost.fossil.or.id
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.replicas
+    name: replicas
+    type: string
+  - JSONPath: .status.phase
+    name: phase
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    name: age
+    type: date
   group: ghost.fossil.or.id
   names:
     kind: GhostApp
@@ -113,6 +123,16 @@ spec:
           type: object
         status:
           description: GhostAppStatus defines the observed state of GhostApp
+          properties:
+            phase:
+              description: Represents the latest available observations of a ghostapp
+                current state.
+              type: string
+            reason:
+              type: string
+            replicas:
+              format: int32
+              type: integer
           type: object
       type: object
   version: v1alpha1

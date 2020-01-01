@@ -108,6 +108,27 @@ func schema_pkg_apis_ghost_v1alpha1_GhostAppStatus(ref common.ReferenceCallback)
 			SchemaProps: spec.SchemaProps{
 				Description: "GhostAppStatus defines the observed state of GhostApp",
 				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"replicas": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"phase": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Represents the latest available observations of a ghostapp current state.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"reason": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
 			},
 		},
 	}

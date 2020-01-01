@@ -89,12 +89,36 @@ type GhostAppSpec struct {
 	Persistent GhostPersistentSpec `json:"persistent,omitempty"`
 }
 
+// GhostAppPhaseType represents the current phase of GhostApp instances
+// +k8s:openapi-gen=true
+type GhostAppPhaseType string
+
+const (
+	// GhostAppPhaseCreating indicates that the GhostApp is under provisioning
+	// +k8s:openapi-gen=true
+	GhostAppPhaseCreating GhostAppPhaseType = "Creating"
+
+	// GhostAppPhaseRunning indicates that the GhostApp is ready and running
+	// +k8s:openapi-gen=true
+	GhostAppPhaseRunning GhostAppPhaseType = "Running"
+
+	// GhostAppPhaseUpdating indicates that the GhostApp is under updating
+	// +k8s:openapi-gen=true
+	GhostAppPhaseUpdating GhostAppPhaseType = "Updating"
+
+	// GhostAppPhaseFailure indicates that the GhostApp failed to be provisioned
+	// +k8s:openapi-gen=true
+	GhostAppPhaseFailure GhostAppPhaseType = "Failure"
+)
+
 // GhostAppStatus defines the observed state of GhostApp
 // +k8s:openapi-gen=true
 type GhostAppStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+	Replicas int32 `json:"replicas,omitempty"`
+	// Represents the latest available observations of a ghostapp current state.
+	Phase GhostAppPhaseType `json:"phase,omitempty"`
+
+	Reason string `json:"reason,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -103,6 +127,9 @@ type GhostAppStatus struct {
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=ghostapps,scope=Namespaced
+// +kubebuilder:printcolumn:name="replicas",type="string",JSONPath=".status.replicas"
+// +kubebuilder:printcolumn:name="phase",type="string",JSONPath=".status.phase"
+// +kubebuilder:printcolumn:name="age",type="date",JSONPath=".metadata.creationTimestamp"
 type GhostApp struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
