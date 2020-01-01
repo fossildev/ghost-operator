@@ -142,17 +142,32 @@ func (r *ReconcileGhostApp) Reconcile(request reconcile.Request) (reconcile.Resu
 			reqLogger.Info("Creating a new ConfigMap for GhostApp Config", "ConfigMap.Namespace", configMap.GetNamespace(), "ConfigMap.Name", configMap.GetName())
 			// Set GhostApp instance as the owner and controller for this configmap
 			if err := controllerutil.SetControllerReference(instance, configMap, r.scheme); err != nil {
+				instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
+				instance.Status.Reason = err.Error()
+				if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+					return reconcile.Result{}, err
+				}
 				return reconcile.Result{}, err
 			}
 			// Create new configmap for ghostapp config
 			if err := r.client.Create(context.TODO(), configMap); err != nil {
 				reqLogger.Error(err, "Failed to create new ConfigMap for GhostApp Config", "ConfigMap.Namespace", configMap.GetNamespace(), "ConfigMap.Name", configMap.GetName())
+				instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
+				instance.Status.Reason = err.Error()
+				if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+					return reconcile.Result{}, err
+				}
 				return reconcile.Result{}, err
 			}
 			reqLogger.Info("Created a new ConfigMap for GhostApp Config", "ConfigMap.Namespace", configMap.GetNamespace(), "ConfigMap.Name", configMap.GetName())
 			return reconcile.Result{Requeue: true, RequeueAfter: 5 * time.Second}, nil
 		}
 		reqLogger.Error(err, "Failed to get ConfigMap")
+		instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
+		instance.Status.Reason = err.Error()
+		if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+			return reconcile.Result{}, err
+		}
 		return reconcile.Result{}, err
 	}
 
@@ -169,17 +184,32 @@ func (r *ReconcileGhostApp) Reconcile(request reconcile.Request) (reconcile.Resu
 				reqLogger.Info("Creating a new PersistentVolumeClaim for GhostApp Content", "PersistentVolumeClaim.Namespace", persistentVolumeClaim.GetNamespace(), "PersistentVolumeClaim.Name", persistentVolumeClaim.GetName())
 				// Set GhostApp instance as the owner and controller for this pvc
 				if err := controllerutil.SetControllerReference(instance, persistentVolumeClaim, r.scheme); err != nil {
+					instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
+					instance.Status.Reason = err.Error()
+					if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+						return reconcile.Result{}, err
+					}
 					return reconcile.Result{}, err
 				}
 				// Create new configmap for ghost config
 				if err := r.client.Create(context.TODO(), persistentVolumeClaim); err != nil {
 					reqLogger.Error(err, "Failed to create new PersistentVolumeClaim for GhostApp Content", "PersistentVolumeClaim.Namespace", persistentVolumeClaim.GetNamespace(), "PersistentVolumeClaim.Name", persistentVolumeClaim.GetName())
+					instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
+					instance.Status.Reason = err.Error()
+					if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+						return reconcile.Result{}, err
+					}
 					return reconcile.Result{}, err
 				}
 				reqLogger.Info("Created a new PersistentVolumeClaim for GhostApp Content", "PersistentVolumeClaim.Namespace", persistentVolumeClaim.GetNamespace(), "PersistentVolumeClaim.Name", persistentVolumeClaim.GetName())
 				return reconcile.Result{Requeue: true}, nil
 			}
 			reqLogger.Error(err, "Failed to get PersistentVolumeClaim")
+			instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
+			instance.Status.Reason = err.Error()
+			if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+				return reconcile.Result{}, err
+			}
 			return reconcile.Result{}, err
 		}
 	}
@@ -195,17 +225,32 @@ func (r *ReconcileGhostApp) Reconcile(request reconcile.Request) (reconcile.Resu
 			reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", newDeployment.GetNamespace(), "Deployment.Name", newDeployment.GetName())
 			// Set GhostApp instance as the owner and controller for this deployment
 			if err := controllerutil.SetControllerReference(instance, newDeployment, r.scheme); err != nil {
+				instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
+				instance.Status.Reason = err.Error()
+				if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+					return reconcile.Result{}, err
+				}
 				return reconcile.Result{}, err
 			}
 			// Create new deployment for instance
 			if err := r.client.Create(context.TODO(), newDeployment); err != nil {
 				reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", newDeployment.GetNamespace(), "Deployment.Name", newDeployment.GetName())
+				instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
+				instance.Status.Reason = err.Error()
+				if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+					return reconcile.Result{}, err
+				}
 				return reconcile.Result{}, err
 			}
 			reqLogger.Info("Created a new Deployment", "Deployment.Namespace", newDeployment.GetNamespace(), "Deployment.Name", newDeployment.GetName())
 			return reconcile.Result{Requeue: true, RequeueAfter: 5 * time.Second}, nil
 		}
 		reqLogger.Error(err, "Failed to get Deployment")
+		instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
+		instance.Status.Reason = err.Error()
+		if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+			return reconcile.Result{}, err
+		}
 		return reconcile.Result{}, err
 	}
 
@@ -226,7 +271,13 @@ func (r *ReconcileGhostApp) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	if !reflect.DeepEqual(currentDeployment, willUpdatedDeployment) {
 		reqLogger.Info("Updating current Deployment", "Deployment.Namespace", willUpdatedDeployment.GetNamespace(), "Deployment.Name", willUpdatedDeployment.GetName())
+		instance.Status.Phase = ghostv1alpha1.GhostAppPhaseUpdating
 		if err := r.client.Update(context.TODO(), willUpdatedDeployment); err != nil {
+			instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
+			instance.Status.Reason = err.Error()
+			if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+				return reconcile.Result{}, err
+			}
 			return reconcile.Result{}, err
 		}
 	}
@@ -240,11 +291,21 @@ func (r *ReconcileGhostApp) Reconcile(request reconcile.Request) (reconcile.Resu
 			reqLogger.Info("Creating a new Service", "Service.Namespace", service.GetNamespace(), "Service.Name", service.GetName())
 			// Set GhostApp instance as the owner and controller for this service
 			if err := controllerutil.SetControllerReference(instance, service, r.scheme); err != nil {
+				instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
+				instance.Status.Reason = err.Error()
+				if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+					return reconcile.Result{}, err
+				}
 				return reconcile.Result{}, err
 			}
 			// Create new service for instance
 			if err := r.client.Create(context.TODO(), service); err != nil {
 				reqLogger.Error(err, "Failed to create new Service.", "Service.Namespace", service.GetNamespace(), "Service.Name", service.GetName())
+				instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
+				instance.Status.Reason = err.Error()
+				if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+					return reconcile.Result{}, err
+				}
 				return reconcile.Result{}, err
 			}
 
@@ -252,11 +313,21 @@ func (r *ReconcileGhostApp) Reconcile(request reconcile.Request) (reconcile.Resu
 			return reconcile.Result{Requeue: true}, nil
 		}
 		reqLogger.Error(err, "Failed to get Service")
+		instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
+		instance.Status.Reason = err.Error()
+		if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+			return reconcile.Result{}, err
+		}
 		return reconcile.Result{}, err
 	}
 
 	// All resource already exists - don't requeue
 	reqLogger.Info("Skip reconcile: Resource already exists", "GhostApp.Namespace", instance.GetNamespace(), "GhostApp.Name", instance.GetName())
+	instance.Status.Replicas = *instance.Spec.Replicas
+	instance.Status.Phase = ghostv1alpha1.GhostAppPhaseRunning
+	if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+		return reconcile.Result{}, err
+	}
 	return reconcile.Result{}, nil
 }
 
