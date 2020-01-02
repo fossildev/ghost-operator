@@ -51,6 +51,10 @@ kubectl port-forward service/example-ghost 2368
 
 In this example, the Ghost App is available at http://127.0.0.1:2368 and Ghost Admin at http://127.0.0.1:2368/ghost
 
+## Contributions
+
+We hope you'll get involved! Read our [Contributors' Guide](CONTRIBUTING.md) for details.
+
 ## License
 
 This project is licensed under the Apache-2.0 License - see the [LICENSE](LICENSE) for details

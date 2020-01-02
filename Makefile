@@ -40,6 +40,11 @@ uninstall: ## Uninstall all that all performed in the $ make install.
 
 ##@ Development
 
+.PHONY: install-sdk
+install-sdk: ## Installing operator-sdk
+	@echo ....... Installing operator-sdk .......
+	hack/install-operator-sdk.sh
+
 .PHONY: dep
 dep: ## Update dependencies.
 	@echo ....... Updating dependencies .......
@@ -59,6 +64,11 @@ build: dep code-gen ## Build go binary and docker image.
 publish: ## Push docker image to container registry.
 	@echo ........ Pushing ghost operator image ${IMAGE_TAG} ..........
 	- docker push ${IMAGE_TAG}
+
+.PHONY: run
+run: ## Run operator locally
+	@echo ....... Running operator .......
+	operator-sdk up local
 
 ##@ Tests
 
