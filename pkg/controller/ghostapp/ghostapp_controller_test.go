@@ -17,7 +17,6 @@ package ghostapp
 import (
 	"context"
 	"testing"
-	"time"
 
 	ghostv1alpha1 "fossil.or.id/ghost-operator/pkg/apis/ghost/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -67,7 +66,7 @@ func TestGostAppController(t *testing.T) {
 	s.AddKnownTypes(ghostv1alpha1.SchemeGroupVersion, ghostapp)
 
 	fc := fake.NewFakeClient(objs...)
-	rec := ReconcileGhostApp{fc, s}
+	rec := ReconcileGhostApp{fc, s, log}
 
 	req := reconcile.Request{
 		NamespacedName: types.NamespacedName{
@@ -81,9 +80,8 @@ func TestGostAppController(t *testing.T) {
 		t.Fatalf("reconcile: (%v)", err)
 	}
 
-	// We expected to requeue
-	if !res.Requeue {
-		t.Error("reconcile did not requeue request as expected")
+	if res != (reconcile.Result{}) {
+		t.Error("reconcile did not return an empty Result")
 	}
 
 	// Check if Deployment has been created and has the correct size.
@@ -97,9 +95,8 @@ func TestGostAppController(t *testing.T) {
 		t.Fatalf("reconcile: (%v)", err)
 	}
 
-	// We expected to requeue afeter 5 second
-	if !res.Requeue && res.RequeueAfter != 5*time.Second {
-		t.Error("reconcile requeue which is not expected")
+	if res != (reconcile.Result{}) {
+		t.Error("reconcile did not return an empty Result")
 	}
 
 	// Check if Service has been created.
@@ -113,9 +110,8 @@ func TestGostAppController(t *testing.T) {
 		t.Fatalf("reconcile: (%v)", err)
 	}
 
-	// We expected to requeue
-	if !res.Requeue {
-		t.Error("reconcile requeue which is not expected")
+	if res != (reconcile.Result{}) {
+		t.Error("reconcile did not return an empty Result")
 	}
 
 	res, err = rec.Reconcile(req)
