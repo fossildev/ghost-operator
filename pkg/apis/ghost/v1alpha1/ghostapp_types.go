@@ -45,9 +45,8 @@ type GhostDatabaseConnectionSpec struct {
 // GhostDatabaseSpec defines ghost database config.
 // https://ghost.org/docs/concepts/config/#database
 type GhostDatabaseSpec struct {
-	// Client is ghost database client, for now we only support sqlite3. Of course, we will support mysql too soon.
-	// TODO (prksu): Add mysql database client
-	// +kubebuilder:validation:Enum=sqlite3
+	// Client is ghost database client.
+	// +kubebuilder:validation:Enum=sqlite3;mysql
 	Client string `json:"client"`
 	// +optional
 	Connection GhostDatabaseConnectionSpec `json:"connection"`
