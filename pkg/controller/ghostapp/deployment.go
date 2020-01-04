@@ -25,6 +25,7 @@ import (
 )
 
 func (r *ReconcileGhostApp) CreateOrUpdateDeployment(cr *ghostv1alpha1.GhostApp) error {
+	defaultTerminationGracePeriodSeconds := int64(30)
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.GetName(),
@@ -58,6 +59,7 @@ func (r *ReconcileGhostApp) CreateOrUpdateDeployment(cr *ghostv1alpha1.GhostApp)
 							{
 								Name:          "http",
 								ContainerPort: int32(2368),
+								Protocol:      corev1.ProtocolTCP,
 							},
 						},
 						Lifecycle: &corev1.Lifecycle{
@@ -67,10 +69,17 @@ func (r *ReconcileGhostApp) CreateOrUpdateDeployment(cr *ghostv1alpha1.GhostApp)
 								},
 							},
 						},
-						VolumeMounts: r.newVolumeMountForCR(cr),
+						TerminationMessagePath:   "/dev/termination-log",
+						TerminationMessagePolicy: corev1.TerminationMessageReadFile,
+						VolumeMounts:             r.newVolumeMountForCR(cr),
 					},
 				},
-				Volumes: r.newVolumeForCR(cr),
+				RestartPolicy:                 corev1.RestartPolicyAlways,
+				TerminationGracePeriodSeconds: &defaultTerminationGracePeriodSeconds,
+				DNSPolicy:                     corev1.DNSClusterFirst,
+				SecurityContext:               &corev1.PodSecurityContext{},
+				SchedulerName:                 corev1.DefaultSchedulerName,
+				Volumes:                       r.newVolumeForCR(cr),
 			},
 		}
 		return nil
@@ -81,6 +90,7 @@ func (r *ReconcileGhostApp) CreateOrUpdateDeployment(cr *ghostv1alpha1.GhostApp)
 }
 
 func (r *ReconcileGhostApp) newVolumeForCR(cr *ghostv1alpha1.GhostApp) []corev1.Volume {
+	configMapDefaultMode := int32(0644)
 	var volume []corev1.Volume
 	volume = append(volume, corev1.Volume{
 		Name: "ghost-config",
@@ -89,6 +99,7 @@ func (r *ReconcileGhostApp) newVolumeForCR(cr *ghostv1alpha1.GhostApp) []corev1.
 				LocalObjectReference: corev1.LocalObjectReference{
 					Name: configMapNameFromCR(cr),
 				},
+				DefaultMode: &configMapDefaultMode,
 			},
 		},
 	})
