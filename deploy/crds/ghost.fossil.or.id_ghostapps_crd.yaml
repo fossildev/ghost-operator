@@ -50,11 +50,10 @@ spec:
                   description: GhostDatabaseSpec defines ghost database config. https://ghost.org/docs/concepts/config/#database
                   properties:
                     client:
-                      description: 'Client is ghost database client, for now we only
-                        support sqlite3. Of course, we will support mysql too soon.
-                        TODO (prksu): Add mysql database client'
+                      description: Client is ghost database client.
                       enum:
                       - sqlite3
+                      - mysql
                       type: string
                     connection:
                       description: GhostDatabaseConnectionSpec defines ghost database

@@ -1,0 +1,20 @@
+apiVersion: ghost.fossil.or.id/v1alpha1
+kind: GhostApp
+metadata:
+  name: example-ghostapp
+spec:
+  replicas: 1
+  image: ghost:3
+  config:
+    url: http://localhost:2368
+    database:
+      client: mysql
+      connection:
+        host: example-ghostdb
+        port: 3306
+        user: root
+        password: secret
+        database: ghostdb
+  persistent:
+    enabled: true
+    size: 10Gi
