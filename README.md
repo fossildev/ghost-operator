@@ -32,7 +32,7 @@ spec:
   replicas: 1
   image: ghost:3
   config:
-    url: http://localhost:2368
+    url: http://ghost.example.com
     database:
       client: sqlite3
       connection:
@@ -40,16 +40,15 @@ spec:
   persistent:
     enabled: true
     size: 10Gi
+  ingress:
+    enabled: true
+    hosts:
+    - "ghost.example.com"
+    - "www.ghost.example.com"
 EOF
 ```
 
-Since this operator doesn't support creating ingress yet, let's use `port-forward` command to access ghost app
-
-```bash
-kubectl port-forward service/example-ghost 2368
-```
-
-In this example, the Ghost App is available at http://127.0.0.1:2368 and Ghost Admin at http://127.0.0.1:2368/ghost
+In this example, the Ghost App is available at http://ghost.example.com and Ghost Admin at http://ghost.example.com/ghost/
 
 ## Contributions
 
