@@ -161,6 +161,17 @@ func (r *ReconcileGhostApp) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
+	if instance.Spec.Ingress.Enabled {
+		if err := r.CreateOrUpdateIngress(instance); err != nil {
+			instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
+			instance.Status.Reason = err.Error()
+			if err := r.client.Status().Update(context.TODO(), instance); err != nil {
+				return reconcile.Result{}, err
+			}
+			return reconcile.Result{}, err
+		}
+	}
+
 	// Set status phase to Running
 	instance.Status.Replicas = *instance.Spec.Replicas
 	instance.Status.Phase = ghostv1alpha1.GhostAppPhaseRunning

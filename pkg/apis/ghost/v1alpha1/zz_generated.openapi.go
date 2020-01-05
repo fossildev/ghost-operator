@@ -93,12 +93,17 @@ func schema_pkg_apis_ghost_v1alpha1_GhostAppSpec(ref common.ReferenceCallback) c
 							Ref: ref("fossil.or.id/ghost-operator/pkg/apis/ghost/v1alpha1.GhostPersistentSpec"),
 						},
 					},
+					"ingress": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("fossil.or.id/ghost-operator/pkg/apis/ghost/v1alpha1.GhostIngressSpec"),
+						},
+					},
 				},
 				Required: []string{"config"},
 			},
 		},
 		Dependencies: []string{
-			"fossil.or.id/ghost-operator/pkg/apis/ghost/v1alpha1.GhostConfigSpec", "fossil.or.id/ghost-operator/pkg/apis/ghost/v1alpha1.GhostPersistentSpec"},
+			"fossil.or.id/ghost-operator/pkg/apis/ghost/v1alpha1.GhostConfigSpec", "fossil.or.id/ghost-operator/pkg/apis/ghost/v1alpha1.GhostIngressSpec", "fossil.or.id/ghost-operator/pkg/apis/ghost/v1alpha1.GhostPersistentSpec"},
 	}
 }
 

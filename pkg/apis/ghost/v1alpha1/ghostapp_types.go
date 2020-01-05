@@ -42,6 +42,11 @@ type GhostDatabaseConnectionSpec struct {
 	Database string `json:"database,omitempty"`
 }
 
+type GhostServerSpec struct {
+	Host string             `json:"host"`
+	Port intstr.IntOrString `json:"port"`
+}
+
 // GhostDatabaseSpec defines ghost database config.
 // https://ghost.org/docs/concepts/config/#database
 type GhostDatabaseSpec struct {
@@ -54,10 +59,13 @@ type GhostDatabaseSpec struct {
 
 // GhostConfigSpec defines related ghost configuration based on https://ghost.org/docs/concepts/config
 // TODO (prksu): we need support all ghost configuration since we reference this spec as ghost config too.
+// TODO (prksu): move ghost config to another file.
 type GhostConfigSpec struct {
 	URL string `json:"url"`
 
 	Database GhostDatabaseSpec `json:"database"`
+	// +optional
+	Server GhostServerSpec `json:"server"`
 }
 
 // GhostPersistentSpec defines peristent volume
@@ -69,6 +77,26 @@ type GhostPersistentSpec struct {
 	StorageClass *string `json:"storageClass,omitempty"`
 	// size of storage
 	Size resource.Quantity `json:"size"`
+}
+
+// GhostIngressTLSSpec defines ingress tls
+type GhostIngressTLSSpec struct {
+	Enabled    bool   `json:"enabled"`
+	SecretName string `json:"secretName"`
+}
+
+// GhostIngressSpec defines ingress
+type GhostIngressSpec struct {
+	Enabled bool `json:"enabled"`
+	// +optional
+	// +listType=set
+	Hosts []string `json:"hosts,omitempty"`
+	// +optional
+	TLS GhostIngressTLSSpec `json:"tls,omitempty"`
+	// Additional annotations passed to ".metadata.annotations" in networking.k8s.io/ingress object.
+	// This is useful for configuring ingress through annotation field like: ingress-class, static-ip, etc
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // GhostAppSpec defines the desired state of GhostApp
@@ -86,6 +114,8 @@ type GhostAppSpec struct {
 	Config GhostConfigSpec `json:"config"`
 	// +optional
 	Persistent GhostPersistentSpec `json:"persistent,omitempty"`
+	// +optional
+	Ingress GhostIngressSpec `json:"ingress,omitempty"`
 }
 
 // GhostAppPhaseType represents the current phase of GhostApp instances

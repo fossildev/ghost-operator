@@ -1,0 +1,20 @@
+apiVersion: ghost.fossil.or.id/v1alpha1
+kind: GhostApp
+metadata:
+  name: example-ghostapp
+spec:
+  replicas: 1
+  image: ghost:3
+  config:
+    url: http://localhost:2368
+    database:
+      client: sqlite3
+      connection:
+        filename: /var/lib/ghost/content/data/ghost.db
+  persistent:
+    enabled: true
+    size: 10Gi
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "gce"
