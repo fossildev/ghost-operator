@@ -21,10 +21,17 @@ import (
 	ghostv1alpha1 "fossil.or.id/ghost-operator/pkg/apis/ghost/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func (r *ReconcileGhostApp) CreateOrUpdateConfigMap(cr *ghostv1alpha1.GhostApp) error {
+	// Default ghost.server.host config is 127.0.0.1
+	// we need change this configuration to 0.0.0.0, so ingress controller can resolve this application.
+	// TODO (prksu): Consider create a defaulter to create default value from api.
+	cr.Spec.Config.Server.Host = "0.0.0.0"
+	cr.Spec.Config.Server.Port = intstr.FromInt(int(2368))
+
 	configdata := make(map[string]string)
 	config, _ := json.MarshalIndent(cr.Spec.Config, "", "  ")
 	configdata["config.json"] = string(config)

@@ -83,6 +83,18 @@ spec:
                   required:
                   - client
                   type: object
+                server:
+                  properties:
+                    host:
+                      type: string
+                    port:
+                      anyOf:
+                      - type: string
+                      - type: integer
+                  required:
+                  - host
+                  - port
+                  type: object
                 url:
                   type: string
               required:
@@ -94,6 +106,37 @@ spec:
                 from docker hub registry. NOTE: This operator only support ghost image
                 from docker official image. https://hub.docker.com/_/ghost/'
               type: string
+            ingress:
+              description: GhostIngressSpec defines ingress
+              properties:
+                annotations:
+                  additionalProperties:
+                    type: string
+                  description: 'Additional annotations passed to ".metadata.annotations"
+                    in networking.k8s.io/ingress object. This is useful for configuring
+                    ingress through annotation field like: ingress-class, static-ip,
+                    etc'
+                  type: object
+                enabled:
+                  type: boolean
+                hosts:
+                  items:
+                    type: string
+                  type: array
+                tls:
+                  description: GhostIngressTLSSpec defines ingress tls
+                  properties:
+                    enabled:
+                      type: boolean
+                    secretName:
+                      type: string
+                  required:
+                  - enabled
+                  - secretName
+                  type: object
+              required:
+              - enabled
+              type: object
             persistent:
               description: GhostPersistentSpec defines peristent volume
               properties:

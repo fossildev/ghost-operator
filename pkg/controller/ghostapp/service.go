@@ -25,6 +25,15 @@ import (
 )
 
 func (r *ReconcileGhostApp) CreateOrUpdateService(cr *ghostv1alpha1.GhostApp) error {
+	serviceType := corev1.ServiceTypeClusterIP
+	// set serviceType to NodePort when ingress enabled
+	// we need this type for some ingress-class eg: gce
+	// default is ClusterIP
+	// TODO (prksu): Consider adding ServiceType field in GhostAppSpec
+	if cr.Spec.Ingress.Enabled {
+		serviceType = corev1.ServiceTypeNodePort
+	}
+
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.GetName(),
@@ -45,7 +54,7 @@ func (r *ReconcileGhostApp) CreateOrUpdateService(cr *ghostv1alpha1.GhostApp) er
 
 		svc.Spec = corev1.ServiceSpec{
 			Selector: commonLabelFromCR(cr),
-			Type:     corev1.ServiceTypeClusterIP,
+			Type:     serviceType,
 			Ports: []corev1.ServicePort{
 				{
 					Name:       "http",
