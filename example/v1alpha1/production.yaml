@@ -7,6 +7,15 @@ spec:
   image: ghost:3
   config:
     url: http://ghost.example.com
+    mail:
+      transport: smtp
+      options:
+        service: Google
+        host: smtp.gmail.com
+        port: 587
+        auth:
+          username: example@gmail.com
+          password: wdsa7gy12sdas
     database:
       client: mysql
       connection:
