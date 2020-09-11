@@ -57,11 +57,39 @@ type GhostDatabaseSpec struct {
 	Connection GhostDatabaseConnectionSpec `json:"connection"`
 }
 
+// GhostMailSpec define ghost mail config
+// https://ghost.org/docs/concepts/config/#mail
+type GhostMailSpec struct {
+	Transport string `json:"transport"`
+
+	Options GhostMailOptionsSpec `json:"options"`
+}
+
+// GhostMailOptionsSpec define ghost mail options
+type GhostMailOptionsSpec struct {
+	Service string `json:"service"`
+
+	Host string `json:"host"`
+
+	Port intstr.IntOrString `json:"port"`
+
+	Auth GhostMailAuthSpec `json:"auth"`
+}
+
+// GhostMailAuthSpec define ghost mail authentication
+type GhostMailAuthSpec struct {
+	Username string `json:"username"`
+
+	Password string `json:"password"`
+}
+
 // GhostConfigSpec defines related ghost configuration based on https://ghost.org/docs/concepts/config
 // TODO (prksu): we need support all ghost configuration since we reference this spec as ghost config too.
 // TODO (prksu): move ghost config to another file.
 type GhostConfigSpec struct {
 	URL string `json:"url"`
+
+	Mail GhostMailSpec `json:"mail"`
 
 	Database GhostDatabaseSpec `json:"database"`
 	// +optional
