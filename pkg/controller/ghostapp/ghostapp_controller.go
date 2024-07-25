@@ -110,8 +110,7 @@ func (r *ReconcileGhostApp) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	// Fetch the GhostApp instance
 	instance := &ghostv1alpha1.GhostApp{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
-	if err != nil {
+	if err := r.client.Get(context.TODO(), request.NamespacedName, instance); err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
@@ -132,7 +131,7 @@ func (r *ReconcileGhostApp) Reconcile(request reconcile.Request) (reconcile.Resu
 	}
 
 	// Create new PersistentVolumeClaim if persistent is enabled
-	if instance.Spec.Persistent.Enabled {
+	if instance.IsPersistentEnabled() {
 		if err := r.CreateOrUpdatePersistentVolumeClaim(instance); err != nil {
 			instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
 			instance.Status.Reason = err.Error()
@@ -161,7 +160,7 @@ func (r *ReconcileGhostApp) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
-	if instance.Spec.Ingress.Enabled {
+	if instance.IsIngressEnabled() {
 		if err := r.CreateOrUpdateIngress(instance); err != nil {
 			instance.Status.Phase = ghostv1alpha1.GhostAppPhaseFailure
 			instance.Status.Reason = err.Error()

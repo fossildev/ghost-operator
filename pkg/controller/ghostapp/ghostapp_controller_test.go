@@ -15,13 +15,10 @@
 package ghostapp
 
 import (
-	"context"
 	"testing"
 
 	ghostv1alpha1 "fossil.or.id/ghost-operator/pkg/apis/ghost/v1alpha1"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -31,96 +28,148 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-func TestGostAppController(t *testing.T) {
+func TestReconciler(t *testing.T) {
 	logf.SetLogger(logf.ZapLogger(true))
 
-	var objs []runtime.Object
 	var (
-		name      = "test-ghostapp"
-		namespace = "ghost"
-		replicas  = int32(1)
+		replicas = int32(1)
 	)
 
-	ghostapp := &ghostv1alpha1.GhostApp{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
+	tests := []struct {
+		name    string
+		resouce *ghostv1alpha1.GhostApp
+		wantErr bool
+	}{
+		{
+			name: "Test Create GhostApp Instance",
+			resouce: &ghostv1alpha1.GhostApp{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-ghostapp",
+					Namespace: "ghost",
+				},
+				Spec: ghostv1alpha1.GhostAppSpec{
+					Replicas: &replicas,
+					Image:    "ghost:3",
+					Config: ghostv1alpha1.GhostConfigSpec{
+						URL: "http://example.ghostapp.test",
+						Database: ghostv1alpha1.GhostDatabaseSpec{
+							Client: "sqlite3",
+							Connection: ghostv1alpha1.GhostDatabaseConnectionSpec{
+								Filename: "testghost.db",
+							},
+						},
+					},
+				},
+			},
 		},
-		Spec: ghostv1alpha1.GhostAppSpec{
-			Replicas: &replicas,
-			Image:    "ghost:3",
-			Config: ghostv1alpha1.GhostConfigSpec{
-				URL: "http://example.ghostapp.test:2368",
-				Database: ghostv1alpha1.GhostDatabaseSpec{
-					Client: "sqlite3",
-					Connection: ghostv1alpha1.GhostDatabaseConnectionSpec{
-						Filename: "testghost.db",
+		{
+			name: "Test Create GhostApp Instance With Persistent Volume",
+			resouce: &ghostv1alpha1.GhostApp{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-ghostapp-with-persistent-volume",
+					Namespace: "ghost",
+				},
+				Spec: ghostv1alpha1.GhostAppSpec{
+					Replicas: &replicas,
+					Image:    "ghost:3",
+					Config: ghostv1alpha1.GhostConfigSpec{
+						URL: "http://example.ghostapp.test",
+						Database: ghostv1alpha1.GhostDatabaseSpec{
+							Client: "sqlite3",
+							Connection: ghostv1alpha1.GhostDatabaseConnectionSpec{
+								Filename: "testghost.db",
+							},
+						},
+					},
+					Persistent: ghostv1alpha1.GhostPersistentSpec{
+						Enabled: true,
+						Size:    resource.MustParse("10Gi"),
+					},
+				},
+			},
+		},
+		{
+			name: "Test Create GhostApp Instance With Ingress",
+			resouce: &ghostv1alpha1.GhostApp{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-ghostapp-with-ingress",
+					Namespace: "ghost",
+				},
+				Spec: ghostv1alpha1.GhostAppSpec{
+					Replicas: &replicas,
+					Image:    "ghost:3",
+					Config: ghostv1alpha1.GhostConfigSpec{
+						URL: "http://example.ghostapp.test",
+						Database: ghostv1alpha1.GhostDatabaseSpec{
+							Client: "sqlite3",
+							Connection: ghostv1alpha1.GhostDatabaseConnectionSpec{
+								Filename: "testghost.db",
+							},
+						},
+					},
+					Ingress: ghostv1alpha1.GhostIngressSpec{
+						Enabled: true,
+					},
+				},
+			},
+		},
+		{
+			name: "Test Create GhostApp Instance With Ingress TLS",
+			resouce: &ghostv1alpha1.GhostApp{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-ghostapp-with-ingress-tls",
+					Namespace: "ghost",
+				},
+				Spec: ghostv1alpha1.GhostAppSpec{
+					Replicas: &replicas,
+					Image:    "ghost:3",
+					Config: ghostv1alpha1.GhostConfigSpec{
+						URL: "http://example.ghostapp.test",
+						Database: ghostv1alpha1.GhostDatabaseSpec{
+							Client: "sqlite3",
+							Connection: ghostv1alpha1.GhostDatabaseConnectionSpec{
+								Filename: "testghost.db",
+							},
+						},
+					},
+					Ingress: ghostv1alpha1.GhostIngressSpec{
+						Enabled: true,
+						Hosts:   []string{"example.ghostapp.test"},
+						TLS: ghostv1alpha1.GhostIngressTLSSpec{
+							Enabled:    true,
+							SecretName: "test-ghostapp-with-ingress-tls",
+						},
 					},
 				},
 			},
 		},
 	}
 
-	objs = append(objs, ghostapp)
-	s := scheme.Scheme
-	s.AddKnownTypes(ghostv1alpha1.SchemeGroupVersion, ghostapp)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := scheme.Scheme
+			s.AddKnownTypes(ghostv1alpha1.SchemeGroupVersion, tt.resouce)
 
-	fc := fake.NewFakeClient(objs...)
-	rec := ReconcileGhostApp{fc, s, log}
+			var objs []runtime.Object
+			objs = append(objs, tt.resouce)
+			f := fake.NewFakeClient(objs...)
 
-	req := reconcile.Request{
-		NamespacedName: types.NamespacedName{
-			Name:      name,
-			Namespace: namespace,
-		},
-	}
+			request := reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      tt.resouce.Name,
+					Namespace: tt.resouce.Namespace,
+				},
+			}
 
-	res, err := rec.Reconcile(req)
-	if err != nil {
-		t.Fatalf("reconcile: (%v)", err)
-	}
+			r := ReconcileGhostApp{f, s, log}
+			result, err := r.Reconcile(request)
+			if err != nil && !tt.wantErr {
+				t.Fatalf("reconcile: (%v)", err)
+			}
 
-	if res != (reconcile.Result{}) {
-		t.Error("reconcile did not return an empty Result")
-	}
-
-	// Check if Deployment has been created and has the correct size.
-	deployment := &appsv1.Deployment{}
-	if err = fc.Get(context.TODO(), req.NamespacedName, deployment); err != nil && !errors.IsNotFound(err) {
-		t.Fatalf("get deployment: (%v)", err)
-	}
-
-	res, err = rec.Reconcile(req)
-	if err != nil {
-		t.Fatalf("reconcile: (%v)", err)
-	}
-
-	if res != (reconcile.Result{}) {
-		t.Error("reconcile did not return an empty Result")
-	}
-
-	// Check if Service has been created.
-	service := &corev1.Service{}
-	if err = fc.Get(context.TODO(), req.NamespacedName, service); err != nil && !errors.IsNotFound(err) {
-		t.Fatalf("get service: (%v)", err)
-	}
-
-	res, err = rec.Reconcile(req)
-	if err != nil {
-		t.Fatalf("reconcile: (%v)", err)
-	}
-
-	if res != (reconcile.Result{}) {
-		t.Error("reconcile did not return an empty Result")
-	}
-
-	res, err = rec.Reconcile(req)
-	if err != nil {
-		t.Fatalf("reconcile: (%v)", err)
-	}
-
-	// After all we expected rempty result
-	if res != (reconcile.Result{}) {
-		t.Error("reconcile did not return an empty Result")
+			if result != (reconcile.Result{}) {
+				t.Error("reconcile did not return an empty result")
+			}
+		})
 	}
 }
